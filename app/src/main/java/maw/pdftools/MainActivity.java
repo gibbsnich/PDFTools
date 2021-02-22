@@ -1,9 +1,11 @@
 package maw.pdftools;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
@@ -45,6 +47,61 @@ public class MainActivity extends AppCompatActivity {
         PDFBoxResourceLoader.init(getApplicationContext());
     }
 
+    class SavePDFTask extends AsyncTask<Void, Void, PDDocument> {
+        private final String selectionText;
+
+        public SavePDFTask(String selectionText) {
+            this.selectionText = selectionText;
+        }
+
+        @Override
+        protected PDDocument doInBackground(Void... voids) {
+            PDDocument newDoc = new PDDocument();
+            if (selectionText.length() == 0) {
+                //just merge all given PDFs..
+                for (int i = 0; i < pdfItemsAdapter.getCount(); i++) {
+                    PDFItemHolder holder = pdfItemsAdapter.getItem(i);
+                    PDDocument document = holder.getDocument();
+                    for (int j = 0; j < holder.getPageNum(); j++) {
+                        newDoc.addPage(document.getPage(j));
+                    }
+                }
+            } else {
+                try {
+                    String[] textSplit = selectionText.toLowerCase().split(" ");
+                    List<PDFPart> parts = new ArrayList<>();
+                    for (String s : textSplit) {
+                        List<PDFPart> someParts = getPDFParts(s);
+                        parts.addAll(someParts);
+                    }
+                    for (PDFPart part: parts) {
+                        newDoc.addPage(part.doc.getPage((part.page)));
+                    }
+                } catch (Exception e) {
+                    //Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+            return newDoc;
+        }
+
+        @Override
+        protected void onPostExecute(PDDocument result) {
+            super.onPostExecute(result);
+            saveCreatedPDF(result);
+        }
+    }
+
+    private void saveCreatedPDF(PDDocument document) {
+        newDoc = document;
+        if (!checkWritePermission()) {
+            requestWritePermission();
+        }
+
+        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        i.addCategory(Intent.CATEGORY_DEFAULT);
+        startActivityForResult(Intent.createChooser(i, "Choose directory"), SEL_FOLDER_CODE);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,43 +125,9 @@ public class MainActivity extends AppCompatActivity {
         createPdfButton.setOnClickListener(v -> {
             EditText editText = findViewById(R.id.select_pdf_text);
             String text = editText.getText().toString();
-            if (text.length() == 0) {
-                //just merge all given PDFs..
-                newDoc = new PDDocument();
-                for (int i = 0; i < pdfItemsAdapter.getCount(); i++) {
-                    PDFItemHolder holder = pdfItemsAdapter.getItem(i);
-                    PDDocument document = holder.getDocument();
-                    for (int j = 0; j < holder.getPageNum(); j++) {
-                        newDoc.addPage(document.getPage(j));
-                    }
-                }
-            } else {
-                try {
-                    String[] textSplit = text.toLowerCase().split(" ");
-                    List<PDFPart> parts = new ArrayList<>();
-                    for (String s : textSplit) {
-                        List<PDFPart> someParts = getPDFParts(s);
-                        parts.addAll(someParts);
-                    }
 
-                    newDoc = new PDDocument();
-                    for (PDFPart part: parts) {
-                        newDoc.addPage(part.doc.getPage((part.page)));
-                    }
-
-                } catch (Exception e) {
-                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            }
-
-            if (!checkWritePermission()) {
-                requestWritePermission();
-            }
-
-            Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-            i.addCategory(Intent.CATEGORY_DEFAULT);
-            startActivityForResult(Intent.createChooser(i, "Choose directory"), SEL_FOLDER_CODE);
-
+            SavePDFTask savePDFTask = new SavePDFTask(text);
+            savePDFTask.execute();
         });
     }
 
@@ -172,12 +195,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     static class PDFItemHolder {
+        private Uri uri;
         private String name;
-        private final PDDocument pdDocument;
-        private final int pageNum;
-        public PDFItemHolder(Uri uri, PDDocument pdDocument) {
-            this.pdDocument = pdDocument;
-
+        private PDDocument pdDocument;
+        private int pageNum;
+        public PDFItemHolder(Uri uri) {
+            this.uri = uri;
             String[] nameSplit = uri.toString().split("/");
 
             if (nameSplit.length > 0) {
@@ -185,13 +208,21 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 name = uri.toString();
             }
+        }
 
-            pageNum = pdDocument.getNumberOfPages();
-            name += " (" + pageNum + " pages)";
+        public Uri getUri() {
+            return uri;
         }
 
         public int getPageNum() {
             return pageNum;
+        }
+
+        public void setDocument(PDDocument document) {
+            pdDocument = document;
+            pageNum = pdDocument.getNumberOfPages();
+            name += " (" + pageNum + " pages)";
+            pdDocument = document;
         }
 
         public PDDocument getDocument() {
@@ -205,6 +236,43 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void initPDFDocument(Uri uri) {
+        final PDFItemHolder holder = new PDFItemHolder(uri);
+        pdfItemsAdapter.add(holder);
+        pdfItemsAdapter.notifyDataSetChanged();
+        LoadPDFTask loadPDFTask = new LoadPDFTask(getApplicationContext(), holder);
+        loadPDFTask.execute();
+    }
+
+    class LoadPDFTask extends AsyncTask<Void, Void, Void> {
+
+        private Context context;
+        private PDFItemHolder holder;
+        private PDDocument document;
+
+        public LoadPDFTask(Context context, PDFItemHolder holder) {
+            this.context = context;
+            this.holder = holder;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try {
+                document = PDDocument.load(context.getContentResolver().openInputStream(holder.getUri()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            holder.setDocument(document);
+            pdfItemsAdapter.notifyDataSetChanged();
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -212,45 +280,67 @@ public class MainActivity extends AppCompatActivity {
             case PDF_REQ_CODE:
                 if (resultCode == -1) {
                     if (checkPermission()) {
-                        Uri fileUri = data.getData();
-
-                        try {
-                            PDDocument document = PDDocument.load(getApplicationContext().getContentResolver().openInputStream(fileUri));
-                            pdfItemsAdapter.add(new PDFItemHolder(fileUri, document));
-                            pdfItemsAdapter.notifyDataSetChanged();
-
-                        } catch (IOException e) {
-                                e.printStackTrace();
-                        }
+                        initPDFDocument(data.getData());
                     } else {
                         requestPermission();
+                        if (checkPermission()) {
+                            initPDFDocument(data.getData());
+                        }
                     }
-
                 }
 
                 break;
             case SEL_FOLDER_CODE:
                 String path = UriHelper.getRealPath(this, data.getData());
-                File file = null;
-                boolean first = true;
-                int cnt = 1;
-                do {
-                    if (first) {
-                        file = new File(path, "extract.pdf");
-                        first = false;
-                    } else {
-                        file = new File(path, "extract_" + cnt + ".pdf");
-                    }
-                } while (file.exists());
-
-                try {
-                    newDoc.save(file);
-                    Toast.makeText(MainActivity.this, "Successfully saved document!", Toast.LENGTH_LONG).show();
-                } catch (IOException e) {
-                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-
+                WritePDFTask writePDFTask = new WritePDFTask(path, newDoc);
+                writePDFTask.execute();
                 break;
+        }
+    }
+
+    class WritePDFTask extends AsyncTask<Void, Void, Void> {
+
+        private String path;
+        private PDDocument document;
+        private String exceptionHappenedMsg;
+
+        public WritePDFTask(String path, PDDocument document) {
+            this.path = path;
+            this.document = document;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            File file;
+            boolean first = true;
+            int cnt = 1;
+            do {
+                if (first) {
+                    file = new File(path, "extract.pdf");
+                    first = false;
+                } else {
+                    file = new File(path, "extract_" + cnt + ".pdf");
+                    cnt += 1;
+                }
+            } while (file.exists());
+
+            try {
+                document.save(file);
+            } catch (IOException e) {
+                exceptionHappenedMsg = e.getMessage();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            if (exceptionHappenedMsg != null) {
+                Toast.makeText(MainActivity.this, "Error: " + exceptionHappenedMsg, Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(MainActivity.this, "Successfully saved document!", Toast.LENGTH_LONG).show();
+            }
+
         }
     }
 
