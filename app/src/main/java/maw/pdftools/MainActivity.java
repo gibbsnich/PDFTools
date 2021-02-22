@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import com.tom_roush.pdfbox.multipdf.PDFMergerUtility;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader;
 
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<PDFItemHolder> pdfItems = new ArrayList<>();
     private ArrayAdapter<PDFItemHolder> pdfItemsAdapter;
     private PDDocument newDoc;
-
+PDFMergerUtility p;
     @Override
     protected void onStart() {
         super.onStart();
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     class SavePDFTask extends AsyncTask<Void, Void, PDDocument> {
         private final String selectionText;
+        private String exceptionHappenedMsg;
 
         public SavePDFTask(String selectionText) {
             this.selectionText = selectionText;
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                         newDoc.addPage(part.doc.getPage((part.page)));
                     }
                 } catch (Exception e) {
-                    //Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                    exceptionHappenedMsg = e.getMessage();
                 }
             }
             return newDoc;
@@ -87,7 +89,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(PDDocument result) {
             super.onPostExecute(result);
-            saveCreatedPDF(result);
+            if (exceptionHappenedMsg != null) {
+                Toast.makeText(MainActivity.this, exceptionHappenedMsg, Toast.LENGTH_LONG).show();
+            } else {
+                saveCreatedPDF(result);
+            }
         }
     }
 
