@@ -136,9 +136,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private static final Pattern ALL_DOC = Pattern.compile("([a-z]{1})"),
-                                    SINGLE_PAGE = Pattern.compile("([a-z]{1})([0-9]+)"),
-                                    PAGE_RANGE = Pattern.compile("([a-z]{1})([0-9]+)-([0-9]+)");
+    private static final Pattern ALL_DOC = Pattern.compile("([a-z])"),
+                                    SINGLE_PAGE = Pattern.compile("([a-z])([0-9]+)"),
+                                    PAGE_RANGE = Pattern.compile("([a-z])([0-9]+)-([0-9]+)");
 
     private List<PDFPart> getPDFParts(String s) throws PDFPartsParseException {
         Matcher matcher = PAGE_RANGE.matcher(s);
