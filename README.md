@@ -1,6 +1,7 @@
 # PDFTools
 
-Just a simple Android app that does what I needed: Extract and merge PDF documents. 
+A simple Android app that extracts pages and/or merges complete PDF documents.  
+
 To use it:  
 - Select pdf documents to extract pages from or to merge  
 - Enter a pdftk like statement to select what to include in the final PDF document  
