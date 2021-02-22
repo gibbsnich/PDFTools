@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
-import com.tom_roush.pdfbox.multipdf.PDFMergerUtility;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.util.PDFBoxResourceLoader;
 
@@ -41,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<PDFItemHolder> pdfItems = new ArrayList<>();
     private ArrayAdapter<PDFItemHolder> pdfItemsAdapter;
     private PDDocument newDoc;
-PDFMergerUtility p;
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -105,7 +104,7 @@ PDFMergerUtility p;
 
         Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         i.addCategory(Intent.CATEGORY_DEFAULT);
-        startActivityForResult(Intent.createChooser(i, "Choose directory"), SEL_FOLDER_CODE);
+        startActivityForResult(Intent.createChooser(i, "Choose an output folder"), SEL_FOLDER_CODE);
     }
 
     @Override
@@ -201,19 +200,22 @@ PDFMergerUtility p;
     }
 
     static class PDFItemHolder {
-        private Uri uri;
-        private String name;
+        private final Uri uri;
+        private String name, docName;
+        private char posChar;
         private PDDocument pdDocument;
         private int pageNum;
-        public PDFItemHolder(Uri uri) {
+        public PDFItemHolder(Uri uri, char posChar) {
             this.uri = uri;
+            this.posChar = posChar;
             String[] nameSplit = uri.toString().split("/");
-
             if (nameSplit.length > 0) {
-                name = nameSplit[nameSplit.length-1];
+                docName = nameSplit[nameSplit.length-1];
+
             } else {
-                name = uri.toString();
+                docName += uri.toString();
             }
+            name = posChar + ": " + docName + " (loading..!)";
         }
 
         public Uri getUri() {
@@ -227,7 +229,7 @@ PDFMergerUtility p;
         public void setDocument(PDDocument document) {
             pdDocument = document;
             pageNum = pdDocument.getNumberOfPages();
-            name += " (" + pageNum + " pages)";
+            name = posChar + ": " + docName + " (" + pageNum + " pages)";
             pdDocument = document;
         }
 
@@ -243,7 +245,8 @@ PDFMergerUtility p;
     }
 
     private void initPDFDocument(Uri uri) {
-        final PDFItemHolder holder = new PDFItemHolder(uri);
+        char posChar = (char)(65 + pdfItemsAdapter.getCount());
+        final PDFItemHolder holder = new PDFItemHolder(uri, posChar);
         pdfItemsAdapter.add(holder);
         pdfItemsAdapter.notifyDataSetChanged();
         LoadPDFTask loadPDFTask = new LoadPDFTask(getApplicationContext(), holder);
@@ -346,17 +349,12 @@ PDFMergerUtility p;
             } else {
                 Toast.makeText(MainActivity.this, "Successfully saved document!", Toast.LENGTH_LONG).show();
             }
-
         }
     }
 
     private boolean checkPermission() {
         int result = ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE);
-        if (result == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        } else {
-            return false;
-        }
+        return result == PackageManager.PERMISSION_GRANTED;
     }
     private void requestPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
@@ -368,11 +366,7 @@ PDFMergerUtility p;
 
     private boolean checkWritePermission() {
         int result = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (result == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        } else {
-            return false;
-        }
+        return result == PackageManager.PERMISSION_GRANTED;
     }
     private void requestWritePermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
