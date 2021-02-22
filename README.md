@@ -16,9 +16,10 @@ Because I could not think of a better way I used [pdftk's syntax](https://www.pd
 So, e.g., if you have three documents and want to have a final document containing:
 - the first page of the first document (`A1`),  
 - page 5, 6 and 7 and page 10-20 from the second document (`B5-8 B10-21`),  
-- the complete third document (`C`).  
+- the complete third document (`C`),  
+- the second page the first document (`A2`).  
 
 Then you just enter:  
-`A1 B5-8 B10-21 C`  
+`A1 B5-8 B10-21 C A2`  
 
 
