@@ -7,7 +7,7 @@ To use it:
 - Enter a pdftk like statement to select what to include in the final PDF document  
 - Select a target folder where the final PDF document will be stored.  
 
-### pdftk Syntax
+### Document Selection Syntax
 Because I could not think of a better way I used [pdftk's syntax](https://www.pdflabs.com/docs/pdftk-cli-examples/) for selecting documents or parts of it. Selected documents correspond to a letter in alphabetical order (first document is A, second is B, etc.), its pages are numbers (first page is 1, second page is 2, etc.) so to select pages that will be contained in the final PDF document you use three types of expressions:  
 - to select a complete document, use its letter  
 - to selected a single page from a document, use the document's letter and the page's page number (e.g. A2: second page of first document),  
