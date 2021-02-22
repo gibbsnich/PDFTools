@@ -18,6 +18,6 @@ So, e.g., if you have three documents and want to have a final document containi
 - the complete third document (C).  
 
 Then you just enter:  
-A1 B5-8 B10-21 C  
+`A1 B5-8 B10-21 C`  
 
 
