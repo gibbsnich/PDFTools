@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -107,9 +108,7 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(Intent.createChooser(i, "Choose an output folder"), SEL_FOLDER_CODE);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    private void initActivity() {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -134,6 +133,18 @@ public class MainActivity extends AppCompatActivity {
             SavePDFTask savePDFTask = new SavePDFTask(text);
             savePDFTask.execute();
         });
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        initActivity();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        initActivity();
     }
 
     private static final Pattern ALL_DOC = Pattern.compile("([a-z])"),
@@ -397,4 +408,5 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }
