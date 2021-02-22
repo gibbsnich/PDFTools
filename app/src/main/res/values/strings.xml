@@ -11,4 +11,6 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="pdf_load_file">PDF Datei laden</string>
     <string name="pdf_create_file">PDF Datei erzeugen</string>
+    <string name="select_pdf_text_hint">Enter selection...</string>
+    <string name="create_pdf_button_label">PDF erzeugen</string>
 </resources>
