@@ -15,8 +15,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import android.view.View;
-
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -137,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
                     start = 0;
                     end = holder.getPageNum() - 1;
                 } else {
-                    throw new PDFPartsParseException("Ungültiger Ausdruck: '" + s + "'");
+                    throw new PDFPartsParseException("Invalid expression: '" + s + "'");
                 }
             }
         }
@@ -152,18 +150,18 @@ public class MainActivity extends AppCompatActivity {
         // 'a' == 97
         int n = ((int)c)-97;
         if (n < 0 || n > pdfItemsAdapter.getCount() - 1) {
-            throw new PDFPartsParseException("'" + c + "' ist kein gültiges Dokument");
+            throw new PDFPartsParseException("'" + c + "' does not select a valid document");
         }
         return pdfItemsAdapter.getItem(n);
     }
 
-    class PDFPartsParseException extends Exception {
+    static class PDFPartsParseException extends Exception {
         public PDFPartsParseException(String msg) {
             super(msg);
         }
     }
 
-    class PDFPart {
+    static class PDFPart {
         PDDocument doc;
         int page;
 
@@ -173,10 +171,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class PDFItemHolder {
+    static class PDFItemHolder {
         private String name;
-        private PDDocument pdDocument;
-        private int pageNum;
+        private final PDDocument pdDocument;
+        private final int pageNum;
         public PDFItemHolder(Uri uri, PDDocument pdDocument) {
             this.pdDocument = pdDocument;
 
@@ -247,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
                     newDoc.save(file);
-                    Toast.makeText(MainActivity.this, "Dokument erfolgreich gespeichert!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Successfully saved document!", Toast.LENGTH_LONG).show();
                 } catch (IOException e) {
                     Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
                 }
