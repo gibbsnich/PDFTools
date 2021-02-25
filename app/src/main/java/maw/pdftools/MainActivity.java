@@ -127,11 +127,15 @@ public class MainActivity extends AppCompatActivity {
 
         Button createPdfButton = findViewById(R.id.create_pdf_button);
         createPdfButton.setOnClickListener(v -> {
-            EditText editText = findViewById(R.id.select_pdf_text);
-            String text = editText.getText().toString();
+            if (pdfItemsAdapter.isEmpty()) {
+                Toast.makeText(MainActivity.this, "There are no PDF files selected...", Toast.LENGTH_LONG).show();
+            } else {
+                EditText editText = findViewById(R.id.select_pdf_text);
+                String text = editText.getText().toString();
 
-            SavePDFTask savePDFTask = new SavePDFTask(text);
-            savePDFTask.execute();
+                SavePDFTask savePDFTask = new SavePDFTask(text);
+                savePDFTask.execute();
+            }
         });
     }
 
