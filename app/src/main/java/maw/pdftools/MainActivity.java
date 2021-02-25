@@ -241,7 +241,6 @@ public class MainActivity extends AppCompatActivity {
             pdDocument = document;
             pageNum = pdDocument.getNumberOfPages();
             name = posChar + ": " + docName + " (" + pageNum + " pages)";
-            pdDocument = document;
         }
 
         public PDDocument getDocument() {
@@ -407,6 +406,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
 }
