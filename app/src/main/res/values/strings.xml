@@ -1,16 +1,7 @@
 <resources>
     <string name="app_name">PDFTools</string>
     <string name="action_settings">Settings</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
-
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <string name="pdf_load_file">PDF Datei laden</string>
-    <string name="pdf_create_file">PDF Datei erzeugen</string>
+    <string name="pdf_load_file">Load PDF file</string>
     <string name="select_pdf_text_hint">Enter selection...</string>
-    <string name="create_pdf_button_label">PDF erzeugen</string>
+    <string name="create_pdf_button_label">Create PDF file</string>
 </resources>
