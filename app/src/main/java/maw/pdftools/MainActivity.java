@@ -28,6 +28,8 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -223,13 +225,19 @@ public class MainActivity extends AppCompatActivity {
         public PDFItemHolder(Uri uri, char posChar) {
             this.uri = uri;
             this.posChar = posChar;
-            String[] nameSplit = uri.toString().split("/");
-            if (nameSplit.length > 0) {
-                docName = nameSplit[nameSplit.length-1];
 
-            } else {
-                docName += uri.toString();
+            try {
+                String[] nameSplit = URLDecoder.decode(uri.toString(), "UTF-8").split("/");
+                if (nameSplit.length > 0) {
+                    docName = nameSplit[nameSplit.length-1];
+                } else {
+                    docName += uri.toString();
+                }
+            } catch (UnsupportedEncodingException e) {
+                docName = "[unknown].pdf";
+                e.printStackTrace();
             }
+
             name = posChar + ": " + docName + " (loading..!)";
         }
 
